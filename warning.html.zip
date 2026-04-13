@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RESTRICTED • OPERATOR ACTIVE</title>
+<style>
+  :root{
+    --bg0:#05070b;
+    --bg1:#070c12;
+    --panel: rgba(12, 16, 24, .72);
+    --panel2: rgba(12, 16, 24, .50);
+    --stroke: rgba(255,255,255,.09);
+    --stroke2: rgba(255,255,255,.14);
+
+    --txt:#eaf1ff;
+    --muted: rgba(234,241,255,.62);
+
+    /* Allowed accent: red -> yellow (no red->black gradient) */
+    --hot1:#ff2525;
+    --hot2:#ffd200;
+
+    --glowR: 0 0 34px rgba(255, 37, 37, .22);
+    --glowY: 0 0 30px rgba(255, 210, 0, .14);
+    --glowHY: 0 0 28px rgba(255, 210, 0, .18), 0 0 36px rgba(255, 37, 37, .14);
+
+    --ok:#2dffb0;
+
+    --r: 20px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  }
+
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; }
+
+  body{
+    margin:0;
+    overflow:hidden;
+    color:var(--txt);
+    background:
+      radial-gradient(1100px 750px at 18% 20%, rgba(255,210,0,.06), transparent 60%),
+      radial-gradient(900px 700px at 82% 26%, rgba(255,37,37,.07), transparent 62%),
+      radial-gradient(900px 700px at 50% 90%, rgba(255,210,0,.04), transparent 62%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+    font-family: var(--sans);
+    cursor:not-allowed;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  /* Film-grain + scanlines + vignette */
+  .fx::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:.26;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.030) 0px,
+      rgba(255,255,255,.030) 1px,
+      rgba(0,0,0,0) 4px,
+      rgba(0,0,0,0) 7px
+    );
+    mix-blend-mode: overlay;
+    animation: scan 7.5s linear infinite;
+  }
+  .fx::after{
+    content:"";
+    position:fixed; inset:-30%;
+    pointer-events:none;
+    opacity:.25;
+    background-image:
+      radial-gradient(circle at 30% 35%, rgba(255,210,0,.10), transparent 42%),
+      radial-gradient(circle at 78% 25%, rgba(255,37,37,.11), transparent 44%),
+      radial-gradient(circle at 60% 78%, rgba(255,210,0,.08), transparent 45%);
+    filter: blur(10px);
+  }
+  @keyframes scan { 0%{transform:translateY(0)} 100%{transform:translateY(14px)} }
+
+  .vignette{
+    position:fixed; inset:0;
+    pointer-events:none;
+    background: radial-gradient(closest-side, transparent 58%, rgba(0,0,0,.72) 100%);
+  }
+
+  /* Full screen container */
+  .screen{
+    width:100vw;
+    height:100vh;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  /* Top strip */
+  .top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 14px;
+    border-radius:999px;
+    background: rgba(255,37,37,.10);
+    border:1px solid rgba(255,210,0,.22);
+    box-shadow: var(--glowHY);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:900;
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  .brand .mark{
+    width:10px;height:10px;border-radius:50%;
+    background: linear-gradient(90deg, var(--hot1), var(--hot2));
+    box-shadow: 0 0 14px rgba(255,210,0,.28);
+  }
+
+  .meta{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+    color: rgba(234,241,255,.70);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lights{ display:flex; gap:8px; align-items:center; }
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .dot.red{ background: rgba(255,37,37,.88); box-shadow: 0 0 14px rgba(255,37,37,.45); animation: blink 1.05s infinite; }
+  .dot.yellow{ background: rgba(255,210,0,.92); box-shadow: 0 0 14px rgba(255,210,0,.25); }
+  .dot.green{ background: rgba(45,255,176,.62); box-shadow: 0 0 14px rgba(45,255,176,.15); }
+  @keyframes blink { 0%,55%,100%{opacity:1} 60%,95%{opacity:.2} }
+
+  /* Grid */
+  .grid{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns: 1.45fr 1fr 1fr;
+    grid-template-rows: 210px 1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width: 1200px){
+    .grid{ grid-template-columns: 1fr; grid-template-rows:auto; }
+  }
+
+  .card{
+    border-radius: var(--r);
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    border:1px solid var(--stroke);
+    box-shadow: 0 30px 110px rgba(0,0,0,.62);
+    backdrop-filter: blur(12px);
+    position:relative;
+    overflow:hidden;
+    min-height:0;
+  }
+
+  /* Hard edge “security frame” */
+  .card::before{
+    content:"";
+    position:absolute; inset:0;
+    pointer-events:none;
+    opacity:.52;
+    background: linear-gradient(135deg, rgba(255,37,37,.26), rgba(255,210,0,.18));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    padding:1px;
+    border-radius: var(--r);
+  }
+
+  .head{
+    padding:14px 16px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+
+  .h{
+    display:flex; align-items:center; gap:10px;
+    font-family: var(--mono);
+    font-weight:900;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-size:12px;
+    color: rgba(255,255,255,.92);
+  }
+
+  .sub{
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+    color: rgba(234,241,255,.62);
+    white-space:nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .body{
+    padding:14px 16px 16px;
+    height: calc(100% - 48px);
+    min-height:0;
+  }
+
+  /* Banner */
+  .banner{
+    grid-column: 1 / span 3;
+    grid-row: 1;
+  }
+  .banner .body{
+    display:grid;
+    grid-template-columns: 1.65fr 1fr 1fr;
+    gap:12px;
+    align-items:stretch;
+  }
+  @media (max-width: 1200px){
+    .banner{ grid-column:auto; }
+    .banner .body{ grid-template-columns: 1fr; }
+  }
+
+  .callout{
+    border-radius: 16px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,210,0,.16);
+    padding:12px 12px;
+    height:100%;
+  }
+
+  .title{
+    margin:0;
+    font-size: clamp(20px, 2.1vw, 34px);
+    line-height:1.1;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+    font-weight:1000;
+  }
+  .title .grad{
+    background: linear-gradient(90deg, var(--hot1), var(--hot2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow: var(--glowHY);
+  }
+
+  .desc{
+    margin:10px 0 0;
+    color: rgba(234,241,255,.74);
+    line-height:1.5;
+    font-size:14px;
+  }
+
+  .kv{
+    display:flex; justify-content:space-between; gap:12px;
+    padding:8px 0;
+    border-bottom: 1px dashed rgba(255,255,255,.08);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .kv:last-child{ border-bottom:none; }
+  .k{ color: rgba(234,241,255,.62); font-size:12px; letter-spacing:.10em; text-transform:uppercase; }
+  .v{ color: rgba(234,241,255,.92); font-weight:900; letter-spacing:.06em; }
+
+  /* Footer */
+  .footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    color: rgba(234,241,255,.62);
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+  .sig{
+    font-family: var(--sans);
+    letter-spacing:.02em;
+    text-transform:none;
+    font-style:italic;
+    color: rgba(234,241,255,.76);
+  }
+
+  /* Intrusion overlay */
+  .intrusion{
+    position:fixed; inset:0;
+    display:none;
+    place-items:center;
+    background: rgba(0,0,0,.80);
+    backdrop-filter: blur(10px);
+    z-index:50;
+  }
+  .intrusion.show{ display:grid; }
+  .ibox{
+    width:min(900px, 92vw);
+    border-radius: 22px;
+    padding:20px;
+    background: linear-gradient(180deg, rgba(18,22,30,.95), rgba(10,12,18,.86));
+    border:1px solid rgba(255,210,0,.22);
+    box-shadow: 0 0 80px rgba(255,37,37,.24), 0 0 60px rgba(255,210,0,.10);
+    position:relative;
+    overflow:hidden;
+  }
+  .ibox::before{
+    content:"";
+    position:absolute; inset:0;
+    pointer-events:none;
+    opacity:.9;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,210,0,.12) 45%, transparent 100%);
+    transform: translateX(-40%);
+    animation: sweep 1.0s linear infinite;
+  }
+  @keyframes sweep { 0%{transform:translateX(-40%)} 100%{transform:translateX(140%)} }
+
+  .ibox h2{
+    margin:0 0 10px;
+    font-family: var(--mono);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-size:18px;
+  }
+  .ibox p{
+    margin:0;
+    color: rgba(234,241,255,.82);
+    line-height:1.55;
+    font-size:14px;
+  }
+  .ibox b{
+    background: linear-gradient(90deg, var(--hot1), var(--hot2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hint{
+    margin-top:12px;
+    color: rgba(234,241,255,.62);
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+  }
+
+  .shake{ animation: shake .34s linear 1; }
+  @keyframes shake{
+    0%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(7px); }
+    60%{ transform: translateX(-6px); }
+    80%{ transform: translateX(5px); }
+    100%{ transform: translateX(0); }
+  }
+
+  canvas{ width:100%; height:100%; display:block; }
+
+  /* Big “lock text” */
+  .stamp{
+    position:absolute;
+    right:16px;
+    bottom:16px;
+    padding:10px 12px;
+    border-radius:14px;
+    border:1px solid rgba(255,210,0,.20);
+    background: rgba(0,0,0,.26);
+    font-family: var(--mono);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-size:11px;
+    color: rgba(234,241,255,.70);
+  }
+</style>
+</head>
+
+<body class="fx">
+  <div class="vignette"></div>
+
+  <div class="screen" id="screen">
+    <div class="top">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        OPERATOR ACTIVE • DO NOT TOUCH
+      </div>
+
+      <div class="meta">
+        <div class="lights" aria-hidden="true">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div id="clock">--:--:--</div>
+        <div>SID <span id="sid">--------</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Banner -->
+      <section class="card banner">
+        <div class="head">
+          <div class="h">⛔ RESTRICTED WORKSTATION • COUNTERMEASURES ENABLED</div>
+          <div class="sub" id="armedState">AUDIO: DISARMED</div>
+        </div>
+        <div class="body">
+          <div class="callout">
+            <h1 class="title">
+              <span class="grad">DO NOT INTERACT</span><br/>
+              PROTECTED OPERATIONS IN PROGRESS
+            </h1>
+            <p class="desc">
+              This terminal is running protected tasks. Any input is treated as an intrusion attempt and will be logged.
+              <br/><br/>
+              <b>To arm the monitor beep:</b> press <b>Space</b> once (or click once), then step away.
+            </p>
+          </div>
+
+          <div class="callout">
+            <div class="kv"><div class="k">Operator</div><div class="v">Br. John Ariel Rullan, OFM</div></div>
+            <div class="kv"><div class="k">Policy</div><div class="v">ZERO INPUT</div></div>
+            <div class="kv"><div class="k">Audit</div><div class="v">REMOTE TRACE</div></div>
+            <div class="kv"><div class="k">Threat State</div><div class="v" id="threatText">ACTIVE</div></div>
+          </div>
+
+          <div class="callout">
+            <div class="kv"><div class="k">Disk (Browser Storage)</div><div class="v" id="diskText">--</div></div>
+            <div class="kv"><div class="k">RAM (Browser Heap)</div><div class="v" id="ramText">--</div></div>
+            <div class="kv"><div class="k">Inputs</div><div class="v" id="inputText">MONITORED</div></div>
+            <div class="kv"><div class="k">Display</div><div class="v">2560×1440</div></div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="sig">Advisory: do not interrupt protected operations.</div>
+          <div id="note">Tip: F11 for true full-screen.</div>
+        </div>
+      </section>
+
+      <!-- Attack Surface Graph -->
+      <section class="card" style="grid-column:1; grid-row:2;">
+        <div class="head">
+          <div class="h">Attack Surface • Live Telemetry</div>
+          <div class="sub" id="asPct">--%</div>
+        </div>
+        <div class="body">
+          <canvas id="surface" width="1100" height="520"></canvas>
+          <div class="stamp">NO ACCESS • LOCKED</div>
+        </div>
+      </section>
+
+      <!-- Penetration Attempts -->
+      <section class="card" style="grid-column:2; grid-row:2;">
+        <div class="head">
+          <div class="h">Intrusion Attempts • Rate</div>
+          <div class="sub" id="rateText">--/min</div>
+        </div>
+        <div class="body">
+          <canvas id="attempts" width="900" height="520"></canvas>
+          <div class="stamp">ACTIVE MONITORING</div>
+        </div>
+      </section>
+
+      <!-- Integrity / Pressure Gauge -->
+      <section class="card" style="grid-column:3; grid-row:2;">
+        <div class="head">
+          <div class="h">Integrity Pressure • Gauge</div>
+          <div class="sub" id="gText">--%</div>
+        </div>
+        <div class="body">
+          <canvas id="gauge" width="900" height="520"></canvas>
+          <div class="stamp">ESCALATION READY</div>
+        </div>
+      </section>
+
+      <!-- Secure Console -->
+      <section class="card" style="grid-column:1 / span 2; grid-row:3;">
+        <div class="head">
+          <div class="h">Secure Console • Event Stream</div>
+          <div class="sub" id="streamState">LIVE</div>
+        </div>
+        <div class="body">
+          <canvas id="console" width="1400" height="520"></canvas>
+          <div class="stamp">READ-ONLY</div>
+        </div>
+      </section>
+
+      <!-- System Gate -->
+      <section class="card" style="grid-column:3; grid-row:3;">
+        <div class="head">
+          <div class="h">System Gate • Access Control</div>
+          <div class="sub" id="gateState">DENIED</div>
+        </div>
+        <div class="body" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="callout" style="flex:1;">
+            <div class="kv"><div class="k">Operation</div><div class="v" id="opText">Initializing…</div></div>
+            <div class="kv"><div class="k">Lock Mode</div><div class="v">HARD</div></div>
+            <div class="kv"><div class="k">Override</div><div class="v">DENIED</div></div>
+            <div class="kv"><div class="k">Last Input</div><div class="v" id="lastInput">NONE</div></div>
+          </div>
+          <div class="callout">
+            <div class="k" style="margin-bottom:6px;">Warning</div>
+            <div style="color:rgba(234,241,255,.78); line-height:1.5; font-size:13px;">
+              Any touch triggers an intrusion response, alarm burst, and logging escalation.
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Intrusion overlay -->
+  <div class="intrusion" id="intrusion">
+    <div class="ibox" id="ibox">
+      <h2>🚨 INTRUSION CONFIRMED</h2>
+      <p>
+        Input was detected during protected operations. Further interaction may trigger <b>lock escalation</b> and trace export.
+        <br/>Step away from the workstation <b>immediately</b>.
+      </p>
+      <div class="hint">This is not a prompt. Do not proceed.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+  // -------- Clock + SID --------
+  const sid = [...crypto.getRandomValues(new Uint8Array(8))]
+    .map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+  $("sid").textContent = sid;
+
+  function tickClock(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    const ss = String(d.getSeconds()).padStart(2,"0");
+    $("clock").textContent = `${hh}:${mm}:${ss}`;
+  }
+  tickClock();
+  setInterval(tickClock, 250);
+
+  // -------- Disk + RAM (Browser-limited truth) --------
+  async function updateDisk(){
+    if (!navigator.storage?.estimate){
+      $("diskText").textContent = "UNAVAILABLE";
+      return;
+    }
+    const est = await navigator.storage.estimate();
+    const used = est.usage ?? 0;
+    const quota = est.quota ?? 0;
+    const pct = quota ? Math.round((used / quota) * 100) : 0;
+
+    const fmt = (bytes) => {
+      const gb = bytes / (1024**3);
+      if (gb >= 1) return `${gb.toFixed(2)} GB`;
+      const mb = bytes / (1024**2);
+      return `${mb.toFixed(0)} MB`;
+    };
+
+    $("diskText").textContent = `${fmt(used)} / ${fmt(quota)} (${pct}%)`;
+  }
+
+  function updateRam(){
+    const pm = performance?.memory; // Chromium-only
+    if (!pm){
+      $("ramText").textContent = "UNAVAILABLE";
+      return;
+    }
+    const used = pm.usedJSHeapSize || 0;
+    const limit = pm.jsHeapSizeLimit || 0;
+    const pct = limit ? Math.round((used / limit) * 100) : 0;
+
+    const fmt = (bytes) => `${(bytes / (1024**2)).toFixed(0)} MB`;
+    $("ramText").textContent = `${fmt(used)} / ${fmt(limit)} (${pct}%)`;
+  }
+
+  updateDisk(); updateRam();
+  setInterval(updateDisk, 5000);
+  setInterval(updateRam, 1200);
+
+  // -------- ICU-like Beep: ONCE every 3 seconds --------
+  let audioCtx = null;
+  let armed = false;
+  let beepInterval = null;
+  let toggle = false;
+
+  function armAudio(){
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    armed = true;
+    $("armedState").textContent = "AUDIO: ARMED • 3s";
+    $("armedState").style.color = "rgba(255,210,0,.9)";
+
+    // optional: request fullscreen on the first user gesture
+    const el = document.documentElement;
+    el.requestFullscreen?.().catch(()=>{});
+  }
+
+  // Short, bright ICU-style beep. Alternate slightly between “ECG” and “SpO2” tones.
+  function icuBeep(){
+    if (!armed || !audioCtx) return;
+
+    const t0 = audioCtx.currentTime;
+    const dur = 0.065;
+    toggle = !toggle;
+
+    const freq = toggle
+      ? 1780 + (Math.random()*30 - 15)  // ECG-ish
+      : 1520 + (Math.random()*30 - 15); // O2-ish
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, t0);
+
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(freq, t0);
+    filter.Q.setValueAtTime(9, t0);
+
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.16, t0 + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  function startBeeping(){
+    if (beepInterval) clearInterval(beepInterval);
+    beepInterval = setInterval(icuBeep, 3000); // exactly every 3 seconds
+    icuBeep(); // immediate first beep after arm
+  }
+
+  function alarmBurst(){
+    // harsher, faster burst on intrusion
+    if (!armed || !audioCtx) return;
+    for (let i=0; i<6; i++){
+      setTimeout(icuBeep, i * 140);
+    }
+  }
+
+  // -------- Canvas UI helpers --------
+  const hotStops = ["#ff2525", "#ffd200"];
+  function grad(ctx,x0,y0,x1,y1){
+    const g = ctx.createLinearGradient(x0,y0,x1,y1);
+    g.addColorStop(0, hotStops[0]);
+    g.addColorStop(1, hotStops[1]);
+    return g;
+  }
+  function clear(ctx,w,h){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = "rgba(0,0,0,.18)";
+    ctx.fillRect(0,0,w,h);
+  }
+  function grid(ctx,w,h){
+    ctx.strokeStyle = "rgba(255,255,255,.06)";
+    ctx.lineWidth = 1;
+    for(let x=0;x<=w;x+=90){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+    for(let y=0;y<=h;y+=70){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  }
+
+  // -------- Attack Surface chart (aggressive modern line + heat fill) --------
+  const surf = $("surface");
+  const sctx = surf.getContext("2d");
+  let as = 68;
+  const asSeries = Array.from({length: 120}, (_,i)=> 60 + Math.sin(i/8)*6 + (Math.random()*2-1));
+
+  function drawSurface(){
+    const w = surf.width, h = surf.height;
+    clear(sctx,w,h);
+    grid(sctx,w,h);
+
+    as = clamp(as + (Math.random()*2.0 - 0.7), 45, 96);
+    $("asPct").textContent = `${Math.floor(as)}%`;
+
+    asSeries.push(as + Math.sin(Date.now()/700)*2.6 + (Math.random()*2-1));
+    while(asSeries.length > 120) asSeries.shift();
+
+    const pad = 22;
+    const xStep = (w - pad*2) / (asSeries.length - 1);
+
+    // line
+    sctx.beginPath();
+    for (let i=0; i<asSeries.length; i++){
+      const v = clamp(asSeries[i], 0, 100);
+      const x = pad + i*xStep;
+      const y = pad + (1 - v/100) * (h - pad*2);
+      if (i===0) sctx.moveTo(x,y);
+      else sctx.lineTo(x,y);
+    }
+
+    sctx.strokeStyle = grad(sctx, 0,0,w,0);
+    sctx.lineWidth = 3.2;
+    sctx.shadowColor = "rgba(255,210,0,.20)";
+    sctx.shadowBlur = 18;
+    sctx.stroke();
+    sctx.shadowBlur = 0;
+
+    // fill
+    sctx.lineTo(w - pad, h - pad);
+    sctx.lineTo(pad, h - pad);
+    sctx.closePath();
+    sctx.fillStyle = "rgba(255,210,0,.06)";
+    sctx.fill();
+
+    // “hard marker” at last point
+    const lastV = clamp(asSeries[asSeries.length-1], 0, 100);
+    const lx = w - pad;
+    const ly = pad + (1 - lastV/100) * (h - pad*2);
+    sctx.beginPath();
+    sctx.arc(lx, ly, 5.5, 0, Math.PI*2);
+    sctx.fillStyle = "rgba(255,210,0,.85)";
+    sctx.shadowColor = "rgba(255,37,37,.25)";
+    sctx.shadowBlur = 14;
+    sctx.fill();
+    sctx.shadowBlur = 0;
+
+    requestAnimationFrame(drawSurface);
+  }
+  drawSurface();
+
+  // -------- Attempts chart (vertical spike bars) --------
+  const att = $("attempts");
+  const actx = att.getContext("2d");
+  const bars = Array.from({length: 50}, () => 20 + Math.random()*40);
+  let rate = 18;
+
+  function drawAttempts(){
+    const w = att.width, h = att.height;
+    clear(actx,w,h);
+    grid(actx,w,h);
+
+    rate = clamp(rate + (Math.random()*6 - 2.5), 6, 72);
+    $("rateText").textContent = `${Math.floor(rate)}/min`;
+
+    bars.push(clamp(rate + (Math.random()*20 - 10), 3, 90));
+    while(bars.length > 50) bars.shift();
+
+    const pad = 22;
+    const maxV = 90;
+    const bw = (w - pad*2) / bars.length;
+
+    for (let i=0; i<bars.length; i++){
+      const v = bars[i];
+      const x = pad + i*bw + 2;
+      const bh = (v/maxV) * (h - 56);
+      const y = (h - pad) - bh;
+
+      // base bar
+      actx.fillStyle = "rgba(255,210,0,.10)";
+      actx.fillRect(x, y, bw-4, bh);
+
+      // cap highlight
+      actx.fillStyle = grad(actx, x,y, x+bw, y);
+      actx.fillRect(x, y, bw-4, Math.max(4, bh*0.12));
+    }
+
+    requestAnimationFrame(drawAttempts);
+  }
+  drawAttempts();
+
+  // -------- Gauge (integrity pressure) --------
+  const gauge = $("gauge");
+  const gctx = gauge.getContext("2d");
+  let g = 82;
+
+  function drawGauge(){
+    const w = gauge.width, h = gauge.height;
+    clear(gctx,w,h);
+
+    g = clamp(g + (Math.random()*2.2 - 0.9), 55, 98);
+    $("gText").textContent = `${Math.floor(g)}%`;
+    $("threatText").textContent = g > 90 ? "CRITICAL" : (g > 75 ? "ACTIVE" : "ELEVATED");
+
+    const cx = w/2, cy = h*0.62;
+    const r = Math.min(w,h)*0.33;
+
+    // bg arc
+    gctx.lineWidth = 22;
+    gctx.strokeStyle = "rgba(255,255,255,.07)";
+    gctx.beginPath();
+    gctx.arc(cx, cy, r, Math.PI*1.06, Math.PI*1.94);
+    gctx.stroke();
+
+    // value arc
+    const t = g/100;
+    const end = Math.PI*1.06 + (Math.PI*0.88)*t;
+    gctx.strokeStyle = grad(gctx, cx-r,cy, cx+r,cy);
+    gctx.shadowColor = "rgba(255,37,37,.18)";
+    gctx.shadowBlur = 18;
+    gctx.beginPath();
+    gctx.arc(cx, cy, r, Math.PI*1.06, end);
+    gctx.stroke();
+    gctx.shadowBlur = 0;
+
+    // text
+    gctx.fillStyle = "rgba(234,241,255,.92)";
+    gctx.font = "900 46px " + getComputedStyle(document.documentElement).getPropertyValue('--mono');
+    gctx.textAlign = "center";
+    gctx.fillText(`${Math.floor(g)}%`, cx, cy+16);
+
+    gctx.fillStyle = "rgba(234,241,255,.68)";
+    gctx.font = "800 12px " + getComputedStyle(document.documentElement).getPropertyValue('--mono');
+    gctx.fillText("INTEGRITY PRESSURE", cx, cy+46);
+
+    requestAnimationFrame(drawGauge);
+  }
+  drawGauge();
+
+  // -------- Console stream (animated terminal panel) --------
+  const con = $("console");
+  const cctx = con.getContext("2d");
+
+  const messages = [
+    "POLICY/LOCK: input denied • hook active",
+    "TRACE: remote audit channel established",
+    "IDS: anomaly detector calibrated",
+    "HARDEN: access vectors sealed",
+    "AUTH: operator token verified",
+    "GATE: privileged path blocked",
+    "NET: suspicious probe signature filtered",
+    "LOG: immutable record appended",
+    "KERNEL: protected task running",
+    "SENTRY: escalation threshold armed"
+  ];
+
+  const lines = [];
+  for (let i=0; i<14; i++) lines.push("…");
+
+  function pushLine(){
+    const t = new Date();
+    const ts = `${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")}:${String(t.getSeconds()).padStart(2,"0")}`;
+    const msg = messages[Math.floor(Math.random()*messages.length)];
+    const sev = Math.random();
+    const tag = sev > 0.88 ? "[CRIT]" : sev > 0.62 ? "[WARN]" : "[INFO]";
+    lines.push(`${ts} ${tag} ${msg}`);
+    while(lines.length > 18) lines.shift();
+  }
+  setInterval(pushLine, 680);
+  pushLine();
+
+  let pulse = 0;
+  function drawConsole(){
+    const w = con.width, h = con.height;
+    clear(cctx,w,h);
+    grid(cctx,w,h);
+
+    // header glow band
+    pulse += 0.02;
+    cctx.fillStyle = "rgba(255,210,0,.04)";
+    cctx.fillRect(0,0,w,54);
+
+    // “cursor” intensity
+    const a = 0.35 + (Math.sin(pulse*2.2)*0.25 + 0.25);
+
+    // render text lines
+    cctx.font = "700 14px " + getComputedStyle(document.documentElement).getPropertyValue('--mono');
+    cctx.textAlign = "left";
+    cctx.textBaseline = "top";
+
+    let y = 18;
+    for (const line of lines){
+      let color = "rgba(234,241,255,.74)";
+      if (line.includes("[WARN]")) color = "rgba(255,210,0,.85)";
+      if (line.includes("[CRIT]")) color = "rgba(255,37,37,.90)";
+
+      cctx.fillStyle = color;
+      cctx.fillText(line, 18, y);
+      y += 22;
+    }
+
+    // fake cursor
+    cctx.fillStyle = `rgba(255,210,0,${a})`;
+    cctx.fillRect(18, y+2, 10, 16);
+
+    requestAnimationFrame(drawConsole);
+  }
+  drawConsole();
+
+  // -------- Status rotation --------
+  const ops = [
+    "Hardening access controls…",
+    "Sealing attack vectors…",
+    "Streaming audit logs…",
+    "Running integrity checks…",
+    "Enforcing policy lock…",
+    "Filtering probe signatures…"
+  ];
+  function rotateOps(){
+    $("opText").textContent = ops[Math.floor(Math.random()*ops.length)];
+  }
+  rotateOps();
+  setInterval(rotateOps, 2200);
+
+  // -------- Intrusion overlay --------
+  const intrusion = $("intrusion");
+  const ibox = $("ibox");
+  const screen = $("screen");
+  let intrusionTimer = null;
+
+  function showIntrusion(){
+    intrusion.classList.add("show");
+    ibox.classList.remove("shake");
+    screen.classList.remove("shake");
+    void ibox.offsetWidth;
+    ibox.classList.add("shake");
+    screen.classList.add("shake");
+    alarmBurst();
+
+    clearTimeout(intrusionTimer);
+    intrusionTimer = setTimeout(() => intrusion.classList.remove("show"), 2600);
+  }
+
+  // -------- Input handling: first gesture arms audio; after that, any input triggers intrusion --------
+  function recordInput(kind){
+    $("lastInput").textContent = kind;
+    $("lastInput").style.color = "rgba(255,210,0,.92)";
+  }
+
+  function onInteract(e){
+    const kind = e.type === "keydown" ? `KEY:${e.code}` : "POINTER";
+    recordInput(kind);
+
+    if (!armed){
+      armAudio();
+      startBeeping();
+      return;
+    }
+
+    $("inputText").textContent = "INTRUSION";
+    $("inputText").style.color = "rgba(255,210,0,.92)";
+    showIntrusion();
+  }
+
+  window.addEventListener("pointerdown", onInteract, {passive:true});
+  window.addEventListener("keydown", onInteract);
+
+})();
+</script>
+</body>
+</html>
