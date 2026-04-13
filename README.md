@@ -1,109 +1,68 @@
 # Screen Update Interface
 
-A browser-based maintenance-status interface built as a multi-screen front-end experience using standalone HTML, Tailwind CSS, custom CSS effects, canvas-driven visuals, and lightweight browser audio cues.
-
-The project currently includes a primary maintenance monitor screen and a completion screen, with supporting visual assets stored in the `img/` directory. The main interface contains a locked-entry launch view, a live system monitor layout, animated telemetry panels, an ECG-style health graph, a memory usage graph, a real-time clock, and timed alert tones generated through the Web Audio API. :contentReference[oaicite:0]{index=0}
-
-The completion screen provides a polished confirmation interface with status cards, success-state messaging, and a button that attempts to close the browser tab or window after acknowledgment. :contentReference[oaicite:1]{index=1}
+A browser-based maintenance-status interface built as a multi-screen front-end experience using standalone HTML, Tailwind CSS, canvas-driven visuals, and lightweight browser-generated alert cues.
 
 ## Project Structure
 
 ```text
 warning/
 ├── img/
-│   ├── main screen.png
-│   ├── success screen.png
-│   └── system_lock.png
+│   ├── main-screen.png
+│   ├── success-screen.png
+│   └── system-lock.png
 ├── maintenance.html
 ├── success.html
 └── README.md
-Screens Included
-1. Access Lock Screen
+Preview
+Access Lock Screen
 
-The initial state of the main interface presents a restricted-access maintenance entry screen with warning language, a highlighted action button, and a transition into the monitoring dashboard after user interaction.
+Maintenance Monitor
 
-2. Maintenance Monitor
+Completion Screen
 
-The main monitor view contains:
+Overview
 
-a maintenance-state header
-real-time local system time
-operator directive and sender identification panels
-monitoring flags and small status cards
-a live memory graph rendered on canvas
-a machine health ECG-style waveform rendered on canvas
-dynamic PC health percentage feedback
-timed diagnostic audio beeps and periodic alert cadence behavior
+This project contains two main browser interfaces:
 
-These behaviors are implemented directly in maintenance.html using JavaScript, canvas rendering, timers, and browser audio context handling.
+maintenance.html — the primary maintenance monitor screen
+success.html — the completion screen shown after the process finishes
 
-3. Completion Screen
+The maintenance interface includes a launch lock screen, a real-time system-style dashboard, canvas-rendered telemetry, animated waveform display, dynamic health metrics, and browser audio signaling.
 
-The completion page includes:
+The completion interface includes a success-state card, status summary blocks, and a completion action button.
 
-a centered success-state card
-animated highlight effects
-update verification summary blocks
-a completion button that attempts to close the active tab or window
-a fallback message if automatic closing is blocked by the browser
-
-This behavior is implemented in success.html.
-
-Technical Notes
+Main Features
+Maintenance Screen
+restricted-entry launch overlay
+real-time local system clock
+animated system-monitor layout
+memory usage graph rendered with canvas
+ECG-style health waveform
+dynamic health percentage display
+timed browser-generated alert tones
+responsive panel-based layout
+Completion Screen
+centered success-state confirmation card
+animated visual effects
+update verification summary
+completion button with browser close attempt fallback
 Front-End Stack
 HTML5
 Tailwind CSS via CDN
-custom CSS animations and gradients
-canvas-based graph rendering
-Web Audio API for generated tones
-Google-hosted web fonts on the maintenance screen
-Bootstrap stylesheet loaded on the maintenance screen alongside Tailwind utilities
-maintenance.html
-
-The main maintenance interface is implemented as a full-screen browser experience. It includes:
-
-a launch screen overlay
-a hidden main dashboard that becomes visible after activation
-a live system clock updated once per second
-synthesized audio beeps with soft and long alert variants
-animated ECG waveform logic
-animated memory graph generation
-randomized health-state fluctuations within a bounded range
-responsive layout sections for large and smaller screens
-success.html
-
-The completion view is a separate standalone page with:
-
-a success-shell card layout
-glow, shine, and pulse animations
-a structured summary of update status, verification, and system state
-a button handler that calls window.close() and shows fallback text when needed
+custom CSS animations
+JavaScript
+Canvas API
+Web Audio API
 How to Run
 
-Because the project is built as standalone HTML pages, no build process is required.
-
-Open either of the following files directly in a browser:
+Open these files directly in a browser:
 
 maintenance.html
 success.html
 
-For the best visual behavior, use a modern Chromium-based browser.
-
-Asset Notes
-
-The img/ directory contains the captured screen assets used for documentation and repository preview:
-
-![Access Lock Screen](./img/system_lock.png)
-![Maintenance Monitor](./img/main%20screen.png)
-![Completion Screen](./img/success%20screen.png)
-
-These images represent the major visual states of the interface.
-
-Use Case
-
-This repository contains a stylized maintenance-status front-end intended for presentation, interface study, screen-flow demonstration, and browser-based visual system messaging. The project emphasizes immersive UI treatment, animated telemetry, and controlled user attention through layout, motion, status language, and audio signaling.
+For best results, use a modern Chromium-based browser.
 
 Notes
-The main dashboard depends on browser permission to play audio after user interaction.
-Automatic tab closing on the completion screen may not work in every browser context.
-External CDN resources are required for full styling where internet access is available.
+Browser audio usually starts after user interaction.
+Automatic tab closing may not work in all browsers.
+External CDN resources are required for full styling.
