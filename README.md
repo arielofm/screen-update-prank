@@ -5,13 +5,15 @@ A browser-based maintenance-status interface built as a multi-screen front-end e
 ## Project Structure
 
 ```text
-warning/
+.
+├── .vscode/
 ├── img/
 │   ├── main-screen.png
 │   ├── success-screen.png
 │   └── system-lock.png
 ├── maintenance.html
 ├── success.html
+├── warning.html.zip
 └── README.md
 Preview
 Access Lock Screen
@@ -27,7 +29,7 @@ This project contains two main browser interfaces:
 maintenance.html — the primary maintenance monitor screen
 success.html — the completion screen shown after the process finishes
 
-The maintenance interface includes a launch lock screen, a real-time system-style dashboard, canvas-rendered telemetry, animated waveform display, dynamic health metrics, and browser audio signaling.
+The maintenance interface includes a launch lock screen, a real-time system-style dashboard, canvas-rendered telemetry, animated waveform display, dynamic health metrics, and browser-generated alert cues.
 
 The completion interface includes a success-state card, status summary blocks, and a completion action button.
 
