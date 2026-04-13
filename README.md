@@ -20,13 +20,13 @@ A browser-based maintenance-status interface built as a multi-screen front-end e
 ## Preview
 
 ### Access Lock Screen
-![Access Lock Screen](img/system-lock.png)
+![Access Lock Screen](/img/system_lock.png)
 
 ### Maintenance Monitor
-![Maintenance Monitor](img/main-screen.png)
+![Maintenance Monitor](/img/main%20screen.png)
 
 ### Completion Screen
-![Completion Screen](img/success-screen.png)
+![Completion Screen](/img/success%20screen.png)
 
 ## Overview
 
